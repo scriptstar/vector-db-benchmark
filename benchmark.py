@@ -270,7 +270,9 @@ def main():
 
                     s_all = time.time()
                     futs = []
-                    with ThreadPoolExecutor(max_workers=args.concurrency) as ex:
+                    # Use reduced concurrency for TopK to avoid rate limits
+                    max_workers = 1 if db_name.lower() == "topk" else args.concurrency
+                    with ThreadPoolExecutor(max_workers=max_workers) as ex:
                         futs = [ex.submit(_one_query, queries[idx]) for idx in order]
                         for f in as_completed(futs):
                             latency, res, q, q_vec = f.result()

@@ -1,5 +1,5 @@
 """
-ChromaDB client for benchmarking using ChromaDB HTTP API
+ChromaDB client for benchmarking using ChromaDB v2 HTTP API
 """
 
 import chromadb
@@ -23,7 +23,10 @@ class ChromaDB(VectorDB):
                 allow_reset=True
             )
         )
-        self.client.heartbeat() # Test connection
+        # Test connection with v2 API
+        response = self.client.heartbeat()
+        if not isinstance(response, int):
+            raise Exception("ChromaDB v2 connection failed")
 
     def close(self):
         """
@@ -39,9 +42,11 @@ class ChromaDB(VectorDB):
         except Exception:
             pass # Collection doesn't exist, which is fine
         
+        # ChromaDB v2 API - create collection with embedding function
         self.client.create_collection(
             name=self.collection_name,
-            metadata={"hnsw:space": "cosine", "dimension": dim}
+            metadata={"hnsw:space": "cosine"},
+            # v2 handles dimensions automatically based on embeddings
         )
 
     def upsert(self, vectors: List[List[float]], payloads: List[Dict[str, Any]]):

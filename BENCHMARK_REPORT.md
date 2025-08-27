@@ -3,7 +3,7 @@
 
 ### Executive Summary
 
-This comprehensive benchmark evaluates **6 vector databases** across multiple TopK values (5, 10, 15, 20, 25, and 50) using a music semantic search dataset. The evaluation tested **90,001 music tracks** using the `sentence-transformers/all-MiniLM-L6-v2` embedding model with COSINE similarity and optimized HNSW parameters.
+This comprehensive benchmark evaluates **7 vector databases** across multiple TopK values (5, 10, 15, 20, 25, and 50) using a music semantic search dataset. The evaluation tested **90,001 music tracks** using the `sentence-transformers/all-MiniLM-L6-v2` embedding model with COSINE similarity and optimized HNSW parameters.
 
 **🏆 OVERALL WINNER: QDRANT** 
 
@@ -29,18 +29,20 @@ This comprehensive benchmark evaluates **6 vector databases** across multiple To
 1. **Qdrant**: 4.29-6.75ms (fastest + perfect recall + simple ops)
 2. **Milvus**: 4.24-6.00ms (equivalent speed, complex ops)
 3. **Weaviate**: 7.01-11.31ms (good average, P99 spikes)
-4. **ChromaDB**: 7.58-9.14ms (consistent, lower recall)
+4. **ChromaDB**: 8.0-9.2ms (consistent, excellent recall)
 5. **SQLite**: 26.6-38.0ms (local processing overhead)
 6. **Pinecone**: 104-117ms (network latency impact)
+7. **TopK**: 167-177ms (cloud API with rate limiting overhead)
 
 ### 🚀 Throughput Champions (QPS)
 
 1. **Milvus**: 41.8-53.6 QPS
 2. **Qdrant**: 42.3-54.0 QPS (often matches/exceeds Milvus)
 3. **Weaviate**: 37.9-48.4 QPS
-4. **ChromaDB**: 37.4-42.1 QPS
+4. **ChromaDB**: 38.8-41.9 QPS
 5. **SQLite**: 18.3-23.4 QPS
 6. **Pinecone**: 7.4-8.0 QPS
+7. **TopK**: 5.4-5.6 QPS (cloud API limitations)
 
 ### ⚡ Data Ingestion Speed
 
@@ -48,8 +50,9 @@ This comprehensive benchmark evaluates **6 vector databases** across multiple To
 2. **Qdrant**: 14.2 seconds (fast + simple setup)
 3. **SQLite**: 18.0 seconds
 4. **Weaviate**: 44.0 seconds  
-5. **ChromaDB**: 76.4 seconds
+5. **ChromaDB**: 61.7 seconds
 6. **Milvus**: 104.4 seconds (complex multi-service setup)
+7. **TopK**: 260.4 seconds (cloud API with rate limiting delays)
 
 ---
 
@@ -75,7 +78,7 @@ This comprehensive benchmark evaluates **6 vector databases** across multiple To
 
 #### High Recall (0.90+)
 - **Weaviate**: 0.97-1.0 recall (excellent quality)
-- **ChromaDB**: 0.92-1.0 recall (good consistency)
+- **ChromaDB**: 0.91-1.0 recall (excellent consistency, perfect at k=5)
 - **Milvus**: 0.92-0.96 recall (slight trade-off for speed)
 
 ### P99 Latency Analysis (milliseconds)
@@ -124,18 +127,19 @@ This comprehensive benchmark evaluates **6 vector databases** across multiple To
 
 **Best For:** **99% of production systems** - combines maximum performance with minimum operational burden
 
-### 🥉 ChromaDB - Solid Performer
+### 🥉 ChromaDB - Solid Performer (v2)
 **Strengths:**
-- Consistent latency across TopK values
-- Good recall rates (0.92-1.0)
-- Reasonable throughput
-- Simple setup
+- Consistent latency across TopK values (8.0-9.2ms)
+- Excellent recall rates (0.91-1.0, perfect at k=5)
+- Good throughput (38.8-41.9 QPS)
+- Simple setup and v2 API improvements
+- Fast ingestion (61.7s)
 
 **Trade-offs:**
-- Moderate ingestion time (69.3s)
-- Middle-tier performance
+- Middle-tier latency performance
+- Still behind top-tier databases for raw speed
 
-**Best For:** Development and moderate-scale production deployments
+**Best For:** Development and moderate-scale production deployments requiring excellent recall
 
 ### Weaviate - Variable Performance
 **Strengths:**
@@ -176,6 +180,21 @@ This comprehensive benchmark evaluates **6 vector databases** across multiple To
 
 **Best For:** Managed cloud deployments prioritizing simplicity over speed
 
+### TopK - Cloud Vector Service
+**Strengths:**
+- Cloud-managed infrastructure
+- Automatic rate limiting and quota management
+- Decent recall (0.79-0.92)
+- Managed scaling and reliability
+
+**Trade-offs:**
+- Highest latency (167-177ms) due to cloud API overhead
+- Lowest throughput (5.4-5.6 QPS) due to rate limiting
+- Slowest ingestion (260.4s) impacted by quota constraints
+- Performance heavily dependent on API quotas and limits
+
+**Best For:** Teams needing managed cloud infrastructure and willing to trade performance for operational simplicity
+
 ---
 
 ## Recommendations by Use Case
@@ -215,6 +234,11 @@ This comprehensive benchmark evaluates **6 vector databases** across multiple To
 - Fully managed service
 - Perfect recall
 - No infrastructure management
+
+**Alternative**: TopK
+- Cloud-managed vector service
+- Automatic scaling and rate limiting
+- Good performance with quota management
 
 ### 📊 Analytics & Batch Processing
 **Primary**: Milvus or Qdrant
@@ -269,7 +293,9 @@ After comprehensive analysis across all performance metrics and **extended 15-it
 
 **🥉 Tier 3 (Production Ready)**: **ChromaDB** and **Weaviate** - Solid for moderate workloads
 
-**Tier 4 (Specialized)**: **SQLite** (embedded) and **Pinecone** (managed service)
+**Tier 4 (Cloud Services)**: **TopK** and **Pinecone** - Managed cloud solutions
+
+**Tier 5 (Specialized)**: **SQLite** - Embedded deployment specialist
 
 ### Final Recommendation
 
@@ -278,8 +304,9 @@ After comprehensive analysis across all performance metrics and **extended 15-it
 **Choose alternatives only if:**
 - You specifically need multi-service architecture for some reason (Milvus)
 - You want embedded deployment (SQLite)  
-- You require fully managed service (Pinecone)
+- You require fully managed service (Pinecone or TopK)
 - You need rapid prototyping (ChromaDB)
+- You want cloud-managed with automatic scaling (TopK)
 
 ### ⚖️ **Operational Complexity Consideration**
 

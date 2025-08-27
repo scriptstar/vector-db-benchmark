@@ -1,13 +1,13 @@
 # Vector DB Benchmark for Music Semantic Search
 
-This repository benchmarks **6-7 vector databases** for music semantic search, using a shared dataset and query set. It provides both a CLI benchmarking tool and a web UI for side-by-side DB comparison.
+This repository benchmarks **7 vector databases** for music semantic search, using a shared dataset and query set. It provides both a CLI benchmarking tool and a web UI for side-by-side DB comparison.
 
 **🏆 Key Finding**: Comprehensive benchmarking across 15-20 iterations reveals **Qdrant as the production winner**, delivering equivalent performance to competitors while maintaining single-service operational simplicity.
 
 ## Features
 
 - **Comprehensive benchmarking**: ingest time, query latency, recall, hit rate, and throughput (QPS)
-- **6-7 Vector Databases**: Qdrant, Milvus, Weaviate, ChromaDB, Pinecone, SQLite, and TopK (with quota)
+- **7 Vector Databases**: Qdrant, Milvus, Weaviate, ChromaDB, Pinecone, SQLite, and TopK
 - **Production-grade testing**: Up to 20 iterations for statistical reliability
 - **Flexible embedding**: Use `sentence-transformers` (default) or OpenAI embeddings
 - **Heuristic relevance**: Weak label matching using tags/genres for recall/hit metrics
@@ -28,9 +28,7 @@ This repository benchmarks **6-7 vector databases** for music semantic search, u
 | **ChromaDB**    | Local       | Solid            | Development & moderate workloads                    |
 | **Pinecone**    | Cloud       | Managed          | Fully managed cloud deployments                     |
 | **SQLite**      | Embedded    | Specialized      | Embedded/edge applications                          |
-| **TopK**        | Cloud       | Unknown\*        | Testing (requires quota upgrade from support)       |
-
-_\*TopK requires quota increases for benchmarking - contact support for higher limits_
+| **TopK**        | Cloud       | Managed Service  | Cloud vector search with operational simplicity     |
 
 ## Dataset
 
@@ -69,8 +67,8 @@ python embeddings/embed.py --csv data/muse.csv --out data/embeddings.parquet
 5. **Run the benchmark**
 
 ```sh
-python benchmark.py --csv data/muse.csv --embeddings data/embeddings.parquet --dbs qdrant milvus weaviate chroma pinecone sqlite --topk 10 --repetitions 15
-# For TopK (with quota): add 'topk' to --dbs list
+python benchmark.py --csv data/muse.csv --embeddings data/embeddings.parquet --dbs qdrant milvus weaviate chroma pinecone sqlite topk --topk 10 --repetitions 15
+# For TopK: add 'topk' to --dbs list
 # See all CLI flags with: python benchmark.py --help
 ```
 
@@ -81,11 +79,54 @@ python benchmark.py --csv data/muse.csv --embeddings data/embeddings.parquet --d
 
 ---
 
+## Database UIs & Management
+
+After starting the Docker services, you can access various database management interfaces:
+
+### 🖥️ Web UIs Available
+
+| Database | UI Access | Credentials | Description |
+|----------|-----------|-------------|-------------|
+| **Qdrant** | [http://localhost:6333/dashboard](http://localhost:6333/dashboard) | None | Built-in web dashboard |
+| **Milvus** | [http://localhost:3000](http://localhost:3000) | None | Attu management interface |
+| **MinIO** | [http://localhost:9001](http://localhost:9001) | admin/admin | Milvus object storage console |
+
+### 🔌 API-Only Interfaces
+
+| Database | API Endpoint | Notes |
+|----------|--------------|-------|
+| **Weaviate** | [http://localhost:8080/v1/meta](http://localhost:8080/v1/meta) | RESTful API + GraphQL |
+| **ChromaDB** | [http://localhost:8001](http://localhost:8001) | HTTP API (v2) |
+| **Pinecone Local** | [http://localhost:5080/indexes](http://localhost:5080/indexes) | Compatible with Pinecone cloud API |
+
+### 📊 UI Screenshots
+
+![Qdrant Dashboard](qdrant-dashboard.png)
+*Qdrant web interface showing collections and search*
+
+![Milvus Attu Interface](milvus-attu.png)
+*Attu interface displaying Milvus collections and data*
+
+### 🔌 Complete Port Reference
+
+| Service | Internal Port | External Port | Purpose |
+|---------|--------------|---------------|---------|
+| Qdrant | 6333, 6334 | 6333, 6334 | Vector database + dashboard |
+| Milvus | 19530, 9091 | 19530, 9091 | gRPC API + health check |
+| Attu | 3000 | 3000 | Milvus web UI |
+| Weaviate | 8080, 50051 | 8080, 50051 | REST + gRPC APIs |
+| ChromaDB | 8000 | 8001 | HTTP API |
+| Pinecone | 5080-5090 | 5080-5090 | Local API server |
+| MinIO | 9000, 9001 | 9000, 9001 | Object storage + console |
+| etcd | 2379 | - | Milvus metadata store |
+
+---
+
 ## CLI Usage
 
 ```sh
-python benchmark.py --csv data/muse.csv --embeddings data/embeddings.parquet --dbs qdrant milvus weaviate chroma pinecone sqlite --topk 10 --repetitions 15 [--teardown_after_benchmark]
-# For TopK: add 'topk' to --dbs (requires quota increase from support)
+python benchmark.py --csv data/muse.csv --embeddings data/embeddings.parquet --dbs qdrant milvus weaviate chroma pinecone sqlite topk --topk 10 --repetitions 15 [--teardown_after_benchmark]
+# TopK included in example above
 ```
 
 **Key flags:**
@@ -104,8 +145,8 @@ python benchmark.py --csv data/muse.csv --embeddings data/embeddings.parquet --d
 To run the benchmark across multiple `topk` values in a single command, use the `--topk_sweep` argument. The script will loop through each value sequentially for each database. This is more efficient than running the script multiple times.
 
 ```sh
-python benchmark.py --csv data/muse.csv --embeddings data/embeddings.parquet --dbs qdrant milvus weaviate chroma pinecone sqlite --repetitions 15 --topk_sweep 5 10 15 20 25 50
-# For TopK (with higher quota): add 'topk' to the --dbs list
+python benchmark.py --csv data/muse.csv --embeddings data/embeddings.parquet --dbs qdrant milvus weaviate chroma pinecone sqlite topk --repetitions 15 --topk_sweep 5 10 15 20 25 50
+# TopK included in example above
 ```
 
 **Results:**
@@ -177,18 +218,37 @@ uvicorn ui.backend.server:app --reload --port 8000
 
 ## Troubleshooting
 
+### Database Issues
 - If Docker ports conflict, edit `scripts/docker-compose.yml`
 - If you see dimension mismatch errors, check embedding model and DB index size
 - For OpenAI, set `OPENAI_API_KEY` in your environment
 - For Pinecone, set API key in `.env`
-- For TopK, set API key in `.env` and request quota increase from support
+- For TopK, set API key in `.env` (includes automatic rate limiting)
 - Ensure sufficient disk space for Docker volumes (Milvus requires significant storage)
+- **ChromaDB v2**: Updated to v2 API with improved performance and excellent recall
+
+### UI Access Issues
+
+**Cannot connect to Milvus UI (Attu):**
+- Ensure Attu is running in the Docker network: `docker compose up -d attu`
+- Use container name in connection: `milvus:19530` (not `localhost:19530`)
+- Attu must be in the same Docker network to access Milvus
+
+**Port conflicts:**
+- Check what's using ports: `docker ps` and `lsof -i :PORT`
+- Stop conflicting containers: `docker stop CONTAINER_NAME`
+- Modify ports in `scripts/docker-compose.yml` if needed
+
+**Container networking:**
+- UIs running outside Docker cannot access `localhost` - they need container names
+- Use `docker compose logs SERVICE_NAME` to check for startup errors
+- Verify containers are healthy: `docker compose ps`
 
 ---
 
 ## 🎯 Benchmark Findings
 
-This project conducted extensive benchmarking across **6 vector databases** (7 with TopK quota) with up to **20 iterations** for production-grade statistical reliability. Here are the key findings:
+This project conducted extensive benchmarking across **7 vector databases** with up to **20 iterations** for production-grade statistical reliability. Here are the key findings:
 
 ### Performance Rankings
 
@@ -209,10 +269,10 @@ This project conducted extensive benchmarking across **6 vector databases** (7 w
 **🥉 Other Notable Performers:**
 
 - **Weaviate**: Good performance but variable P99 latencies
-- **ChromaDB**: Solid for development, lower recall at scale
+- **ChromaDB**: Solid for development, excellent recall (perfect at k=5, 0.91-1.0 range)
 - **Pinecone**: Perfect recall but network latency (~105ms)
 - **SQLite**: Perfect for embedded use cases (~28ms)
-- **TopK**: Untested due to quota limitations (requires support approval)
+- **TopK**: Managed cloud service with operational simplicity (167-177ms latency, trade-off for zero infrastructure management)
 
 ### Key Insights
 

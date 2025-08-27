@@ -1,4 +1,5 @@
 import os
+import time
 from topk_sdk import Client
 from topk_sdk.schema import text, f32_vector, vector_index, keyword_index, int
 from topk_sdk.query import select, field, fn
@@ -53,19 +54,34 @@ class TopKClient:
             self.client.collection(self.collection).upsert(batch)
 
     def search(self, vector, top_k=10):
-        # Vector search using TopK SDK query API
+        # Vector search using TopK SDK query API with retry logic
         col = self.client.collection(self.collection)
-        docs = col.query(
-            select(
-                "id",
-                "track",
-                "artist",
-                "genre",
-                "seeds",
-                "text",
-                vector_similarity=fn.vector_distance("vector", vector),
-            ).topk(field("vector_similarity"), top_k, asc=False)
-        )
+        
+        max_retries = 5
+        base_delay = 0.5
+        
+        for attempt in range(max_retries):
+            try:
+                docs = col.query(
+                    select(
+                        "id",
+                        "track",
+                        "artist",
+                        "genre",
+                        "seeds",
+                        "text",
+                        vector_similarity=fn.vector_distance("vector", vector),
+                    ).topk(field("vector_similarity"), top_k, asc=False)
+                )
+                break
+            except Exception as e:
+                if "quota" in str(e).lower() or "rate" in str(e).lower():
+                    if attempt < max_retries - 1:
+                        delay = base_delay * (2 ** attempt)
+                        print(f"Rate limit hit, retrying in {delay}s... (attempt {attempt + 1}/{max_retries})")
+                        time.sleep(delay)
+                        continue
+                raise
         # Return in the same format as other clients
         out = []
         for d in docs:
@@ -86,5 +102,5 @@ class TopKClient:
         return out
 
     def teardown(self):
-        # Optionally delete collection (not required for benchmarking)
+        # Keep collection for UI usage - don't delete
         pass

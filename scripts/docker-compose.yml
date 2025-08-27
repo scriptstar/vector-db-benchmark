@@ -122,6 +122,16 @@ services:
       timeout: 10s
       retries: 3
 
+  attu:
+    image: zilliz/attu:latest
+    container_name: attu
+    environment:
+      MILVUS_URL: milvus:19530
+    ports:
+      - "3000:3000"
+    depends_on:
+      - milvus
+
 volumes:
   qdrant_storage:
   milvus_data:
