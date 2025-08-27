@@ -20,15 +20,15 @@ This repository benchmarks **7 vector databases** for music semantic search, usi
 
 ## Supported Databases
 
-| Database        | Deployment  | Performance Tier | Best For                                            |
-| --------------- | ----------- | ---------------- | --------------------------------------------------- |
+| Database        | Deployment  | Performance Tier | Best For                                              |
+| --------------- | ----------- | ---------------- | ----------------------------------------------------- |
 | **🥇 Qdrant**   | Local/Cloud | Champion         | Production systems (excellent speed + single service) |
 | **🥈 Milvus**   | Local       | High-Performance | Maximum speed with complex 3-service infrastructure   |
-| **🥉 Weaviate** | Local/Cloud | Good             | Feature-rich applications                           |
-| **ChromaDB**    | Local       | Solid            | Development & moderate workloads                    |
-| **Pinecone**    | Cloud       | Managed          | Fully managed cloud deployments                     |
-| **SQLite**      | Embedded    | Specialized      | Embedded/edge applications                          |
-| **TopK**        | Cloud       | Managed Service  | Cloud vector search with operational simplicity     |
+| **🥉 Weaviate** | Local/Cloud | Good             | Feature-rich applications                             |
+| **ChromaDB**    | Local       | Solid            | Development & moderate workloads                      |
+| **Pinecone**    | Cloud       | Managed          | Fully managed cloud deployments                       |
+| **SQLite**      | Embedded    | Specialized      | Embedded/edge applications                            |
+| **TopK**        | Cloud       | Managed Service  | Cloud vector search with operational simplicity       |
 
 ## Dataset
 
@@ -85,40 +85,40 @@ After starting the Docker services, you can access various database management i
 
 ### 🖥️ Web UIs Available
 
-| Database | UI Access | Credentials | Description |
-|----------|-----------|-------------|-------------|
-| **Qdrant** | [http://localhost:6333/dashboard](http://localhost:6333/dashboard) | None | Built-in web dashboard |
-| **Milvus** | [http://localhost:3000](http://localhost:3000) | None | Attu management interface |
-| **MinIO** | [http://localhost:9001](http://localhost:9001) | admin/admin | Milvus object storage console |
+| Database   | UI Access                                                          | Credentials           | Description                   |
+| ---------- | ------------------------------------------------------------------ | --------------------- | ----------------------------- |
+| **Qdrant** | [http://localhost:6333/dashboard](http://localhost:6333/dashboard) | None                  | Built-in web dashboard        |
+| **Milvus** | [http://localhost:3000](http://localhost:3000)                     | None                  | Attu management interface     |
+| **MinIO**  | [http://localhost:9001](http://localhost:9001)                     | minioadmin/minioadmin | Milvus object storage console |
 
 ### 🔌 API-Only Interfaces
 
-| Database | API Endpoint | Notes |
-|----------|--------------|-------|
-| **Weaviate** | [http://localhost:8080/v1/meta](http://localhost:8080/v1/meta) | RESTful API + GraphQL |
-| **ChromaDB** | [http://localhost:8001](http://localhost:8001) | HTTP API (v2) |
+| Database           | API Endpoint                                                   | Notes                              |
+| ------------------ | -------------------------------------------------------------- | ---------------------------------- |
+| **Weaviate**       | [http://localhost:8080/v1/meta](http://localhost:8080/v1/meta) | RESTful API + GraphQL              |
+| **ChromaDB**       | [http://localhost:8001](http://localhost:8001)                 | HTTP API (v2)                      |
 | **Pinecone Local** | [http://localhost:5080/indexes](http://localhost:5080/indexes) | Compatible with Pinecone cloud API |
 
 ### 📊 UI Screenshots
 
 ![Qdrant Dashboard](qdrant-dashboard.png)
-*Qdrant web interface showing collections and search*
+_Qdrant web interface showing collections and search_
 
 ![Milvus Attu Interface](milvus-attu.png)
-*Attu interface displaying Milvus collections and data*
+_Attu interface displaying Milvus collections and data_
 
 ### 🔌 Complete Port Reference
 
-| Service | Internal Port | External Port | Purpose |
-|---------|--------------|---------------|---------|
-| Qdrant | 6333, 6334 | 6333, 6334 | Vector database + dashboard |
-| Milvus | 19530, 9091 | 19530, 9091 | gRPC API + health check |
-| Attu | 3000 | 3000 | Milvus web UI |
-| Weaviate | 8080, 50051 | 8080, 50051 | REST + gRPC APIs |
-| ChromaDB | 8000 | 8001 | HTTP API |
-| Pinecone | 5080-5090 | 5080-5090 | Local API server |
-| MinIO | 9000, 9001 | 9000, 9001 | Object storage + console |
-| etcd | 2379 | - | Milvus metadata store |
+| Service  | Internal Port | External Port | Purpose                     |
+| -------- | ------------- | ------------- | --------------------------- |
+| Qdrant   | 6333, 6334    | 6333, 6334    | Vector database + dashboard |
+| Milvus   | 19530, 9091   | 19530, 9091   | gRPC API + health check     |
+| Attu     | 3000          | 3000          | Milvus web UI               |
+| Weaviate | 8080, 50051   | 8080, 50051   | REST + gRPC APIs            |
+| ChromaDB | 8000          | 8001          | HTTP API                    |
+| Pinecone | 5080-5090     | 5080-5090     | Local API server            |
+| MinIO    | 9000, 9001    | 9000, 9001    | Object storage + console    |
+| etcd     | 2379          | -             | Milvus metadata store       |
 
 ---
 
@@ -171,7 +171,7 @@ python embeddings/embed.py --csv data/muse.csv --out data/embeddings.parquet --u
 The `ui/` folder provides a FastAPI backend and static frontend for live, side-by-side DB search and latency comparison.
 
 ![Semantic Search UI Demo](semantic_search_ui_demo.png)
-*Live comparison of vector databases with real-time latency measurements for music semantic search*
+_Live comparison of vector databases with real-time latency measurements for music semantic search_
 
 ### UI Features
 
@@ -219,6 +219,7 @@ uvicorn ui.backend.server:app --reload --port 8000
 ## Troubleshooting
 
 ### Database Issues
+
 - If Docker ports conflict, edit `scripts/docker-compose.yml`
 - If you see dimension mismatch errors, check embedding model and DB index size
 - For OpenAI, set `OPENAI_API_KEY` in your environment
@@ -230,16 +231,19 @@ uvicorn ui.backend.server:app --reload --port 8000
 ### UI Access Issues
 
 **Cannot connect to Milvus UI (Attu):**
+
 - Ensure Attu is running in the Docker network: `docker compose up -d attu`
 - Use container name in connection: `milvus:19530` (not `localhost:19530`)
 - Attu must be in the same Docker network to access Milvus
 
 **Port conflicts:**
+
 - Check what's using ports: `docker ps` and `lsof -i :PORT`
 - Stop conflicting containers: `docker stop CONTAINER_NAME`
 - Modify ports in `scripts/docker-compose.yml` if needed
 
 **Container networking:**
+
 - UIs running outside Docker cannot access `localhost` - they need container names
 - Use `docker compose logs SERVICE_NAME` to check for startup errors
 - Verify containers are healthy: `docker compose ps`
