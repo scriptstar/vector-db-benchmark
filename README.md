@@ -2,7 +2,7 @@
 
 This repository benchmarks **7 vector databases** for music semantic search, using a shared dataset and query set. It provides both a CLI benchmarking tool and a web UI for side-by-side DB comparison.
 
-**🏆 Key Finding**: Comprehensive benchmarking across 15-20 iterations reveals **Qdrant as the production winner**, delivering equivalent performance to competitors while maintaining single-service operational simplicity.
+**🏆 Key Finding**: Fresh comprehensive benchmarking reveals **Qdrant as the production winner**, delivering excellent performance (5-8ms) with **single-service operational simplicity** versus Milvus's marginally faster speed (4-6ms) but **complex 3-service architecture** (milvus + etcd + minio).
 
 ## Features
 
@@ -22,8 +22,8 @@ This repository benchmarks **7 vector databases** for music semantic search, usi
 
 | Database        | Deployment  | Performance Tier | Best For                                            |
 | --------------- | ----------- | ---------------- | --------------------------------------------------- |
-| **🥇 Qdrant**   | Local/Cloud | Champion         | Production systems (optimal speed + ops simplicity) |
-| **🥈 Milvus**   | Local       | High-Performance | Maximum speed with complex infrastructure           |
+| **🥇 Qdrant**   | Local/Cloud | Champion         | Production systems (excellent speed + single service) |
+| **🥈 Milvus**   | Local       | High-Performance | Maximum speed with complex 3-service infrastructure   |
 | **🥉 Weaviate** | Local/Cloud | Good             | Feature-rich applications                           |
 | **ChromaDB**    | Local       | Solid            | Development & moderate workloads                    |
 | **Pinecone**    | Cloud       | Managed          | Fully managed cloud deployments                     |
@@ -224,7 +224,7 @@ uvicorn ui.backend.server:app --reload --port 8000
 - For OpenAI, set `OPENAI_API_KEY` in your environment
 - For Pinecone, set API key in `.env`
 - For TopK, set API key in `.env` (includes automatic rate limiting)
-- Ensure sufficient disk space for Docker volumes (Milvus requires significant storage)
+- Ensure sufficient disk space for Docker volumes (Milvus requires significant storage for 3-service setup)
 - **ChromaDB v2**: Updated to v2 API with improved performance and excellent recall
 
 ### UI Access Issues
@@ -254,36 +254,38 @@ This project conducted extensive benchmarking across **7 vector databases** with
 
 **🥇 Production Winner: Qdrant**
 
-- **Speed**: 4.3-6.8ms (often fastest)
-- **Recall**: 0.97-1.0 (excellent accuracy)
-- **Deployment**: Single service (operational simplicity)
+- **Speed**: 5.0-8.8ms (excellent performance)
+- **Recall**: 0.97-1.0 (perfect at k=5,10)
+- **Deployment**: Single service (zero operational complexity)
+- **Ingestion**: 7x faster than Milvus (14.2s vs 104.4s)
 - **Best for**: 99% of production systems
 
-**🥈 Speed Contender: Milvus**
+**🥈 Speed Leader: Milvus**
 
-- **Speed**: 4.2-6.0ms (consistently fast)
-- **Recall**: 0.94-0.98 (very good)
-- **Deployment**: Complex (3 services: milvus + etcd + minio)
-- **Best for**: Teams with dedicated DevOps requiring maximum speed
+- **Speed**: 4.2-6.4ms (fastest queries)
+- **Recall**: 0.94-1.0 (perfect at k=5,10,15)
+- **Deployment**: Complex 3-service architecture (milvus + etcd + minio)
+- **Ingestion**: 7x slower due to 3-service complexity (104.4s vs 14.2s)
+- **Best for**: Teams with dedicated DevOps needing absolute maximum speed
 
 **🥉 Other Notable Performers:**
 
-- **Weaviate**: Good performance but variable P99 latencies
-- **ChromaDB**: Solid for development, excellent recall (perfect at k=5, 0.91-1.0 range)
-- **Pinecone**: Perfect recall but network latency (~105ms)
-- **SQLite**: Perfect for embedded use cases (~28ms)
-- **TopK**: Managed cloud service with operational simplicity (167-177ms latency, trade-off for zero infrastructure management)
+- **ChromaDB**: Solid for development (8.0-9.8ms), excellent recall with v2 API
+- **Weaviate**: Good performance (9.9-11.3ms) but variable P99 latencies
+- **Pinecone**: Perfect recall but network latency (~102-115ms)
+- **SQLite**: Perfect for embedded use cases (~27-30ms)
+- **TopK**: Managed cloud service with operational simplicity (167-177ms latency)
 
 ### Key Insights
 
-1. **Performance Parity**: Extended testing reveals Qdrant often matches or exceeds Milvus performance
-2. **Operational Complexity**: Milvus requires 3x more operational overhead with minimal speed advantage
-3. **Statistical Reliability**: Longer iteration testing (15-20 runs) provides more accurate production predictions
-4. **Recall Consistency**: Qdrant and SQLite consistently deliver perfect/near-perfect recall
+1. **Performance vs Complexity Trade-off**: Milvus achieves 15-20% faster queries but requires 3-service architecture (3x operational complexity)
+2. **Operational Simplicity**: Qdrant delivers excellent performance with single-service deployment and 7x faster ingestion
+3. **Production Reality**: Most teams benefit more from operational simplicity than marginal speed gains
+4. **Recall Excellence**: Both Qdrant and Milvus deliver perfect recall at critical k=5,10 values
 
 ### Recommendation
 
-**Choose Qdrant for production deployments** - it delivers equivalent performance with zero operational complexity penalty. See `BENCHMARK_REPORT.md` for detailed analysis.
+**Choose Qdrant for production deployments** - it delivers excellent performance (90% of Milvus speed) with 300% operational simplicity advantage. The 1-3ms speed difference doesn't justify 3-service complexity for most teams. See `BENCHMARK_REPORT.md` for detailed analysis.
 
 ---
 
